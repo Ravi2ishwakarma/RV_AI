@@ -1,38 +1,71 @@
-import { dark } from "react-syntax-highlighter/dist/esm/styles/hljs";
-
-function RecentSearch({recentHistory,setRecentHistory,setSelHistory,askQuestion,darkmode}) {
-    const clearHistory = () => {
+function RecentSearch({ recentHistory, setRecentHistory, setSelHistory, askQuestion, darkmode, showRecent, setShowRecent }) {
+  const clearHistory = () => {
     localStorage.clear();
     setRecentHistory([]);
   };
-  
-    return (
-        <>
-            <div className="col-span-1 dark:bg-zinc-800 bg-red-100 pt-3">
-                <h1 className='text-xl dark:text-white text-zinc-800 flex justify-center'>
-                    <span>Recent Searches</span>
-                    <button onClick={clearHistory} className='cursor-pointer'>
-                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill={darkmode=='dark'?"#F3F3F3":"#000000"}>
-                            <path d="M312-144q-29.7 0-50.85-21.15Q240-186.3 240-216v-480h-48v-72h192v-48h192v48h192v72h-48v479.57Q720-186 698.85-165T648-144H312Zm336-552H312v480h336v-480ZM384-288h72v-336h-72v336Zm120 0h72v-336h-72v336ZM312-696v480-480Z" />
-                        </svg>
-                    </button>
-                </h1>
-                <ul className='text-left overflow-auto text-5m m-2'>
-                    {recentHistory && recentHistory.map((his, index) => (
-                        <li
-                            key={index}
-                            onClick={() => {
-                                setSelHistory(his);
-                                askQuestion();
-                            }}
-                            className='px-5 pl-5 block truncate cursor-pointer dark:text-zinc-400 text-zinc-700 dark:hover:bg-zinc-700 dark:hover:text-zinc-200 hover:bg-red-200 hover:text-zinc-800'>
-                            {his}
-                        </li>
-                    ))}
-                </ul>
-            </div>
 
-        </>
-    );
+  const clearSelHistory = (selectedItem) => {
+    let history = JSON.parse(localStorage.getItem('history')) || [];
+    history = history.filter((item) => item !== selectedItem);
+    setRecentHistory(history);
+    localStorage.setItem('history', JSON.stringify(history));
+  };
+
+  return (
+    <div
+      className={`
+        fixed top-0 left-0 h-full w-64 bg-red-100 dark:bg-zinc-800 z-40 p-3
+        transform transition-transform duration-300 ease-in-out
+        md:relative md:translate-x-0 md:col-span-1
+        ${showRecent ? 'translate-x-0' : '-translate-x-full'}
+      `}
+    >
+      {/* Close button only on mobile */}
+      <div className="flex justify-between items-center mb-3 md:hidden">
+        <h1 className="text-xl dark:text-white text-zinc-800">Recent Searches</h1>
+        <button
+          onClick={() => setShowRecent(false)}
+          className="text-zinc-800 dark:text-white hover:text-red-600 dark:hover:text-red-400"
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Clear All Button */}
+      <div className="flex justify-center md:justify-start mb-2 text-blue-600">
+        <button
+          onClick={clearHistory}
+          className="dark:hover:bg-zinc-950 hover:bg-red-300 cursor-pointer px-2 rounded"
+        >
+          Clear All
+        </button>
+      </div>
+
+      <ul className="text-left overflow-auto h-[85%] text-sm pr-1 space-y-1">
+        {recentHistory &&
+          recentHistory.map((his, index) => (
+            <div key={index} className="flex justify-between items-center">
+              <li
+                onClick={() => {
+                  setSelHistory(his);
+                  askQuestion();
+                  setShowRecent(false);
+                }}
+                className="w-full px-3 truncate cursor-pointer dark:text-zinc-400 text-zinc-700 dark:hover:bg-zinc-700 dark:hover:text-zinc-200 hover:bg-red-200 hover:text-zinc-800"
+              >
+                {his}
+              </li>
+              <button
+                onClick={() => clearSelHistory(his)}
+                className="px-1 dark:hover:bg-zinc-900 hover:bg-red-300"
+              >
+                🗑️
+              </button>
+            </div>
+          ))}
+      </ul>
+    </div>
+  );
 }
+
 export default RecentSearch;
